@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+
+# This script invokes a specific version of Bazel. If that version does not exist, this downloads it
+# first.
+
+import os
+import platform
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+# The version of Bazel to use.
+VERSION = "7.3.2"
+
+# Where to look for Bazel or download it to.
+HOME_DIR = Path.home()
+DOWNLOAD_DIR = HOME_DIR / ".cache" / "bazel"
+BAZEL_FINAL_PATH = DOWNLOAD_DIR / f"bazel-{VERSION}"
+# Create the download directory if it doesn't exist.
+DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Check for OS and architecture compatibility.
+system_info = platform.uname()
+if system_info.system != "Linux":
+    raise NotImplementedError(
+        f"We currently only support building on Linux, detected {system_info.system}"
+    )
+if system_info.machine != "x86_64":
+    raise NotImplementedError(
+        f"We currently only support building on x86_64, detected {system_info.machine}"
+    )
+
+DOWNLOAD_URL = (
+    f"https://github.com/bazelbuild/bazel/releases/download/{VERSION}/bazel-{VERSION}-linux-x86_64"
+)
+if not os.path.exists(BAZEL_FINAL_PATH):
+    # Download Bazel to a temporary directory and then move it atomically, so there is no chance for
+    # a concurrent Bazel command to use a half-downloaded Bazel installation.
+    tmp_download_dir_path = f"{DOWNLOAD_DIR}/_tmp_bazel_{VERSION}"
+    with tempfile.TemporaryDirectory(dir=f"{DOWNLOAD_DIR}") as tmp_download_dir:
+        bazel_tmp_path = Path(tmp_download_dir) / "bazel"
+        subprocess.run(
+            [
+                "wget",
+                DOWNLOAD_URL,
+                "-P",
+                tmp_download_dir,
+                "-O",
+                bazel_tmp_path,
+                "--no-verbose",
+            ],
+            check=True,
+        )
+        subprocess.run(["chmod", "a+x", bazel_tmp_path], check=True)
+        shutil.move(bazel_tmp_path, BAZEL_FINAL_PATH)
+
+# Invoke the version of Bazel we want and pass through all the arguments to it.
+if os.path.exists(BAZEL_FINAL_PATH):
+    os.execvp(BAZEL_FINAL_PATH, [BAZEL_FINAL_PATH] + sys.argv[1:])
+else:
+    raise FileNotFoundError(f"Failed to find {BAZEL_FINAL_PATH}")
