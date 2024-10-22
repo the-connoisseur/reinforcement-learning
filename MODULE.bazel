@@ -2,3 +2,5 @@ module(
     name = "reinforcement-learning",
     version = "1.0",
 )
+
+bazel_dep(name = "buildifier_prebuilt", version = "7.3.1", dev_dependency = True)
