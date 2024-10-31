@@ -3,6 +3,8 @@ module(
     version = "1.0",
 )
 
+bazel_dep(name = "abseil-cpp", version = "20240722.0")
+
 bazel_dep(name = "buildifier_prebuilt", version = "7.3.1", dev_dependency = True)
 
-bazel_dep(name = "abseil-cpp", version = "20240722.0")
+bazel_dep(name = "googletest", version = "1.15.2")
