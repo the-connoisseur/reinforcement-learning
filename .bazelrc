@@ -1,0 +1,4 @@
+build --cxxopt=-std=c++20
+
+# Treat warnings as errors by default.
+build --cxxopt='-Werror'
