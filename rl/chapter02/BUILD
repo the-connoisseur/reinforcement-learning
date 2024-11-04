@@ -40,3 +40,14 @@ py_binary(
         requirement("numpy"),
     ],
 )
+
+py_binary(
+    name = "non_stationary_epsilon_greedy_bandit",
+    srcs = ["non_stationary_epsilon_greedy_bandit.py"],
+    deps = [
+        ":k_armed_bandit_testbed",
+        requirement("absl-py"),
+        requirement("matplotlib"),
+        requirement("numpy"),
+    ],
+)

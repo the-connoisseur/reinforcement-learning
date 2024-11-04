@@ -30,6 +30,22 @@ class KArmedBanditTestbed:
         return self.rng.normal(self.mean_rewards[action], 1.0, count)
 
 
+class NonStationaryKArmedBanditTestbed(KArmedBanditTestbed):
+    """A testbed for the k-armed bandit problem with non-stationary rewards
+
+    After every action, the mean reward for each action is randomly updated.
+    """
+
+    def __init__(self, k: int, rng: np.random.Generator):
+        super().__init__(k, rng)
+
+    def take_action(self, action: int, count: int = None) -> np.ndarray | float:
+        reward = super().take_action(action, count)
+        mean_rewards_increment = self.rng.normal(0.0, 0.01, count)
+        self.mean_rewards += mean_rewards_increment
+        return reward
+
+
 class EpsilonGreedyBandit:
     """Implements an epsilon-greedy policy for the k-armed bandit problem.
 
@@ -41,8 +57,17 @@ class EpsilonGreedyBandit:
         RANDOM = 0
         GREEDY = 1
 
-    def __init__(self, k: int, epsilon: float, rng: np.random.Generator):
-        self.testbed = KArmedBanditTestbed(k, rng)
+    def __init__(
+        self,
+        k: int,
+        epsilon: float,
+        rng: np.random.Generator,
+        non_stationary: bool = False,
+    ):
+        if non_stationary:
+            self.testbed = NonStationaryKArmedBanditTestbed(k, rng)
+        else:
+            self.testbed = KArmedBanditTestbed(k, rng)
         self.rng: np.random.Generator = rng
 
         # The probabilities with which to take a random or greedy action.
